@@ -48,19 +48,14 @@ window.config = {
         items: {
           // Note the -10000 means -10000 + length of existing list, which is
           // much before the start of hte list, so put the new value at the start.
-          '-10000':
-          {
+          '-10000': {
             id: 'Species',
             customizationType: 'ohif.overlayItem',
             label: 'Species:',
             color: 'red',
             background: 'green',
-            condition: ({ instance }) =>
-              instance?.PatientSpeciesDescription,
-            contentF: ({ instance }) =>
-              instance.PatientSpeciesDescription +
-              '/' +
-              instance.PatientBreedDescription,
+            condition: ({ instance }) => instance?.PatientSpeciesDescription,
+            contentF: ({ instance }) => instance.PatientSpeciesDescription + '/' + instance.PatientBreedDescription,
           },
         },
       },

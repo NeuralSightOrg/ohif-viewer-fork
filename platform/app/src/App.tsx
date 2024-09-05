@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import i18n from '@ohif/i18n';
 import { I18nextProvider } from 'react-i18next';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Compose from './routes/Mode/Compose';
 import {
   ExtensionManager,
@@ -31,6 +31,7 @@ import { AppConfigProvider } from '@state';
 import createRoutes from './routes';
 import appInit from './appInit.js';
 import OpenIdConnectRoutes from './utils/OpenIdConnectRoutes';
+import LoginPage from './pages/LoginPage';
 
 let commandsManager: CommandsManager,
   extensionManager: ExtensionManager,
@@ -60,6 +61,7 @@ function App({
   defaultModes = [],
 }) {
   const [init, setInit] = useState(null);
+
   useEffect(() => {
     const run = async () => {
       appInit(config, defaultExtensions, defaultModes).then(setInit).catch(console.error);
@@ -152,7 +154,17 @@ function App({
         userAuthenticationService={userAuthenticationService}
       />
     );
+  } else {
+    authRoutes = (
+      <Routes>
+        <Route
+          path="/login"
+          Component={LoginPage}
+        />
+      </Routes>
+    );
   }
+  console.log(showStudyList);
 
   return (
     <CombinedProviders>
