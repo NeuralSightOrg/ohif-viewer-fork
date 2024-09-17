@@ -67,7 +67,25 @@ function App({
       appInit(config, defaultExtensions, defaultModes).then(setInit).catch(console.error);
     };
 
+    const handleMessage = event => {
+      if (event.origin !== 'http://localhost:3000') {
+        return;
+      }
+
+      const receivedMessage = JSON.parse(event.data);
+      localStorage.setItem('X-Orthanc-label', receivedMessage.xotLabel);
+
+      // Send confirmation back to Project A
+      event.source.postMessage('Message received and saved by Project B!', event.origin);
+    };
+
+    window.addEventListener('message', handleMessage);
+
     run();
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
   }, []);
 
   if (!init) {
@@ -164,7 +182,6 @@ function App({
       </Routes>
     );
   }
-  console.log(showStudyList);
 
   return (
     <CombinedProviders>
