@@ -31,7 +31,7 @@ import { AppConfigProvider } from '@state';
 import createRoutes from './routes';
 import appInit from './appInit.js';
 import OpenIdConnectRoutes from './utils/OpenIdConnectRoutes';
-import LoginPage from './pages/LoginPage';
+import Entry from './pages/Entry';
 
 let commandsManager: CommandsManager,
   extensionManager: ExtensionManager,
@@ -67,25 +67,8 @@ function App({
       appInit(config, defaultExtensions, defaultModes).then(setInit).catch(console.error);
     };
 
-    const handleMessage = event => {
-      if (event.origin !== 'http://localhost:3000') {
-        return;
-      }
-
-      const receivedMessage = JSON.parse(event.data);
-      localStorage.setItem('X-Orthanc-label', receivedMessage.xotLabel);
-
-      // Send confirmation back to Project A
-      event.source.postMessage('Message received and saved by Project B!', event.origin);
-    };
-
-    window.addEventListener('message', handleMessage);
-
     run();
 
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
   }, []);
 
   if (!init) {
@@ -168,7 +151,7 @@ function App({
     authRoutes = (
       <OpenIdConnectRoutes
         oidc={oidc}
-        routerBasename={routerBasename}
+        routerBasename={routerBasenamze}
         userAuthenticationService={userAuthenticationService}
       />
     );
@@ -176,8 +159,8 @@ function App({
     authRoutes = (
       <Routes>
         <Route
-          path="/login"
-          Component={LoginPage}
+          path="/entry"
+          Component={Entry}
         />
       </Routes>
     );
