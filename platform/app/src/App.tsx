@@ -151,7 +151,7 @@ function App({
     authRoutes = (
       <OpenIdConnectRoutes
         oidc={oidc}
-        routerBasename={routerBasenamze}
+        routerBasename={routerBasename}
         userAuthenticationService={userAuthenticationService}
       />
     );

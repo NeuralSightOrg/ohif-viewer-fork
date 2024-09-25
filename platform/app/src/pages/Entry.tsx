@@ -5,8 +5,9 @@ const Entry = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // const url = process.env.REACT_APP_API_BASE;
-  const url = 'http://192.168.100.66:8080/api';
+  const url = window.config.apiBaseURL;
+  // const url = 'http://192.168.100.66:8080/api';
+  console.log(url);
 
   const queryParams = new URLSearchParams(location.search);
 

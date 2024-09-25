@@ -126,9 +126,9 @@ window.config = {
       configuration: {
         friendlyName: 'Static WADO Local Data',
         name: 'DCM4CHEE',
-        wadoUriRoot: 'http://192.168.100.37:8001/dicom-web',
-        qidoRoot: 'http://192.168.100.37:8001/dicom-web',
-        wadoRoot: 'http://192.168.100.37:8001/dicom-web',
+        wadoUriRoot: 'http://127.0.0.1:8001/dicom-web',
+        qidoRoot: 'http://127.0.0.1:8001/dicom-web',
+        wadoRoot: 'http://127.0.0.1:8001/dicom-web',
         qidoSupportsIncludeField: false,
         supportsReject: true,
         supportsStow: true,
@@ -181,25 +181,42 @@ window.config = {
     /* Optional: Should return a React component to be rendered in the "Logo" section of the application's Top Navigation bar */
     createLogoComponentFn: function (React) {
       const currentPath = window.location.pathname;
-      const redirectUrl = currentPath === '/' ? 'http://localhost:3000/' : '/';
+      const dashboard_url = 'http://localhost:5000/';
+      const redirectUrl = currentPath === '/' ? dashboard_url : '/';
 
       return React.createElement(
-        'a',
-        {
-          target: '_self',
-          rel: 'noopener noreferrer',
-          className: 'text-purple-600 line-through',
-          href: redirectUrl, // Use the determined redirect URL
-          onClick: () => {
-            if (currentPath === '/') {
-              localStorage.removeItem('x-orthanc-label');
-            }
+        'div', // Use a div to wrap both logo and home link
+        { className: 'flex items-center' }, // Add flex properties for layout
+        React.createElement(
+          'a',
+          {
+            target: '_self',
+            rel: 'noopener noreferrer',
+            className: 'text-purple-600 line-through mr-4', // Add margin for spacing
+            href: redirectUrl, // Use the determined redirect URL
+            onClick: event => {
+              event.preventDefault();
+              if (currentPath === '/') {
+                localStorage.removeItem('x-orthanc-label');
+                window.location.href = redirectUrl;
+              } else {
+                window.history.back();
+              }
+            },
           },
-        },
-        React.createElement('img', {
-          src: '/ohifassets/logo.gif',
-          className: 'w-8 h-8',
-        })
+          React.createElement('img', {
+            src: '/assets/logo.gif',
+            className: 'w-8 h-8',
+          })
+        ),
+        React.createElement(
+          'a',
+          {
+            href: dashboard_url,
+            className: 'text-blue-600 hover:underline hover:text-white',
+          },
+          'Dashboard'
+        )
       );
     },
   },
@@ -296,4 +313,5 @@ window.config = {
       keys: ['9'],
     },
   ],
+  apiBaseURL: 'http://192.168.100.66:8080/api',
 };
