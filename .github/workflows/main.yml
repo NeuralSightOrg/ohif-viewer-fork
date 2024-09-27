@@ -55,7 +55,7 @@ jobs:
           docker load < ~/ohif-viewer.tar
           docker stop ohif-viewer || true
           docker rm ohif-viewer || true
-          docker run -d --name ohif-viewer -p 3000:80 ohif-viewer:latest
+          docker run -d -v /var/www/html/ohif-viewer/default.js:/usr/share/nginx/html/app-config.js --name ohif-viewer -p 3000:80 ohif-viewer:latest
           rm ~/ohif-viewer.tar
         '
 
