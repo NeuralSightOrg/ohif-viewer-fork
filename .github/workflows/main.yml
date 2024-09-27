@@ -19,15 +19,18 @@ jobs:
         USER: ${{ secrets.AWS_VM_USERNAME }}
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-
-        # Create app directory if it doesn't exist and ensure permissions
-        ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} '
-          sudo mkdir -p /var/www/html/ohif-viewer/app && sudo chown -R ${USER}:${USER} /var/www/html/ohif-viewer/app
-        '
+        # Create a temporary directory on EC2 instance
+        ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} 'mkdir -p ~/app_ohif_tmp'  
 
         # Copy files to the EC2 instance
-        scp -i private_key -o StrictHostKeyChecking=no -r ./* ${USER}@${HOST}:/var/www/html/ohif-viewer/app
-
+        scp -i private_key -o StrictHostKeyChecking=no -r ./* ${USER}@${HOST}:~/app_ohif_tmp
+        
+        # Move the new build to the web root and clean up
+        ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} '
+          sudo rm -rf /var/www/html/ohif-viewer/app
+          sudo mv ~/app_ohif_tmp/* /var/www/html/ohif-viewer/app
+          rm -rf ~/app_ohif_tmp 
+        '
     - name: Build and run Docker container on EC2
       env:
         PRIVATE_KEY: ${{ secrets.AWS_VM_SSH_KEY }}
