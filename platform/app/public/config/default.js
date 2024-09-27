@@ -1,7 +1,96 @@
 window.config = {
   routerBasename: '/',
-  extensions: [],
-  modes: [],
+  extensions: [
+    {
+      packageName: '@ohif/extension-default',
+    },
+    {
+      packageName: '@ohif/extension-cornerstone',
+      version: '3.0.0',
+    },
+    {
+      packageName: '@ohif/extension-measurement-tracking',
+      default: false,
+      version: '3.0.0',
+    },
+    {
+      packageName: '@ohif/extension-cornerstone-dicom-sr',
+      default: false,
+      version: '3.0.0',
+    },
+    {
+      packageName: '@ohif/extension-cornerstone-dicom-seg',
+      default: false,
+      version: '3.0.0',
+    },
+    {
+      packageName: '@ohif/extension-cornerstone-dicom-pmap',
+      default: false,
+      version: '3.0.0',
+    },
+    {
+      packageName: '@ohif/extension-cornerstone-dynamic-volume',
+      default: false,
+      version: '3.0.0',
+    },
+    {
+      packageName: '@ohif/extension-dicom-microscopy',
+      default: false,
+      version: '3.0.0',
+    },
+    {
+      packageName: '@ohif/extension-dicom-pdf',
+      default: false,
+      version: '3.0.0',
+    },
+    {
+      packageName: '@ohif/extension-dicom-video',
+      default: false,
+      version: '3.0.0',
+    },
+    {
+      packageName: '@ohif/extension-tmtv',
+      default: false,
+      version: '3.0.0',
+    },
+    {
+      packageName: '@ohif/extension-test',
+      default: false,
+      version: '3.0.0',
+    },
+    {
+      packageName: '@ohif/extension-cornerstone-dicom-rt',
+      default: false,
+      version: '3.0.0',
+    },
+  ],
+  modes: [
+    {
+      packageName: '@ohif/mode-longitudinal',
+    },
+    {
+      packageName: '@ohif/mode-segmentation',
+    },
+    {
+      packageName: '@ohif/mode-tmtv',
+    },
+    {
+      packageName: '@ohif/mode-microscopy',
+    },
+    {
+      packageName: '@ohif/mode-preclinical-4d',
+    },
+    {
+      packageName: '@ohif/mode-test',
+      default: false,
+      version: '3.0.0',
+    },
+    {
+      packageName: '@ohif/mode-basic-dev-mode',
+      default: false,
+      version: '3.0.0',
+    },
+  ],
   customizationService: {},
   showStudyList: true,
   maxNumberOfWebWorkers: 3,
@@ -60,6 +149,7 @@ window.config = {
       const currentPath = window.location.pathname;
       const dashboard_url = 'https://nerualsight.ai';
       const redirectUrl = currentPath === '/' ? dashboard_url : '/';
+
       return React.createElement(
         'div',
         { className: 'flex items-center' },
@@ -127,11 +217,22 @@ window.config = {
     { commandName: 'nextImage', label: 'Next Image', keys: ['down'] },
     { commandName: 'previousImage', label: 'Previous Image', keys: ['up'] },
     {
+      commandName: 'previousViewportDisplaySet',
+      label: 'Previous Series',
+      keys: ['pagedown'],
+    },
+    {
+      commandName: 'nextViewportDisplaySet',
+      label: 'Next Series',
+      keys: ['pageup'],
+    },
+    {
       commandName: 'setToolActive',
       commandOptions: { toolName: 'Zoom' },
       label: 'Zoom',
       keys: ['z'],
     },
+    // Window level presets
     {
       commandName: 'windowLevelPreset1',
       label: 'W/L Preset 1',
