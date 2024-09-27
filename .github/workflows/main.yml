@@ -19,6 +19,13 @@ jobs:
         USER: ${{ secrets.AWS_VM_USERNAME }}
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+
+        # Create app directory if it doesn't exist and ensure permissions
+        ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} '
+          sudo mkdir -p /var/www/html/ohif-viewer/app && sudo chown -R ${USER}:${USER} /var/www/html/ohif-viewer/app
+        '
+
+        # Copy files to the EC2 instance
         scp -i private_key -o StrictHostKeyChecking=no -r ./* ${USER}@${HOST}:/var/www/html/ohif-viewer/app
 
     - name: Build and run Docker container on EC2
@@ -29,10 +36,14 @@ jobs:
       run: |
         ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} '
           cd /var/www/html/ohif-viewer/app
-          docker build -t ohif-viewer-image .
-          docker stop ohif-viewer-container || true
-          docker rm ohif-viewer-container || true
-          docker run -d -p 3000:80/tcp -v /var/www/html/ohif-viewer/default.js:/usr/share/nginx/html/app-config.js --name ohif-viewer-container ohif-viewer-image
+          sudo docker build -t ohif-viewer-image .
+
+          # Stop and remove any existing container with the same name
+          sudo docker stop ohif-viewer-container || true
+          sudo docker rm ohif-viewer-container || true
+
+          # Run the new container, mapping necessary volumes and ports
+          sudo docker run -d -p 3000:80/tcp -v /var/www/html/ohif-viewer/default.js:/usr/share/nginx/html/app-config.js --name ohif-viewer-container ohif-viewer-image
         '
 
     - name: Cleanup
