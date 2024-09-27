@@ -18,7 +18,7 @@ jobs:
         USER: ${{ secrets.AWS_VM_USERNAME }}
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-        ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} 'mkdir -p ~/app_ohif_tmp'
+        ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} 'sudo rm -rf ~/app_ohif_tmp && mkdir -p ~/app_ohif_tmp'
         rsync -avz --exclude='.git' -e "ssh -i private_key -o StrictHostKeyChecking=no" ./ ${USER}@${HOST}:~/app_ohif_tmp/
         ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} '
           if [ "$(ls -A /var/www/html/ohif-viewer/app)" ]; then
@@ -27,8 +27,8 @@ jobs:
           else
             echo "Destination is empty. Continuing..."
           fi
-          sudo mv ~/app_ohif_tmp/* ~/app_ohif_tmp/.* /var/www/html/ohif-viewer/app/ 2>/dev/null || true
-          sudo rmdir ~/app_ohif_tmp
+          sudo mv ~/app_ohif_tmp/* /var/www/html/ohif-viewer/app/ 2>/dev/null || true
+          sudo rm -rf ~/app_ohif_tmp
         '
 
     - name: Build and run Docker container on EC2
