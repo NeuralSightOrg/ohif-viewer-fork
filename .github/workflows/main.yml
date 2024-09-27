@@ -1,66 +1,62 @@
-name: Comprehensive Docker Build and Deploy to EC2
+name: React Docker Build and Deploy to EC2
 
 on:
   push:
     branches: [ dev ]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Copy all files (including hidden) to EC2 with conditional cleanup
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.npm
+        key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.OS }}-node-
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: false
+        tags: ohif-viewer:latest
+        outputs: type=docker,dest=/tmp/ohif-viewer.tar
+
+    - name: Deploy to EC2
       env:
         PRIVATE_KEY: ${{ secrets.AWS_VM_SSH_KEY }}
         HOST: ${{ secrets.AWS_VM_HOST }}
         USER: ${{ secrets.AWS_VM_USERNAME }}
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-        ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} 'sudo rm -rf ~/app_ohif_tmp && mkdir -p ~/app_ohif_tmp'
-        rsync -avz --exclude='.git' -e "ssh -i private_key -o StrictHostKeyChecking=no" ./ ${USER}@${HOST}:~/app_ohif_tmp/
+        
+        # Copy the Docker image to EC2
+        scp -i private_key -o StrictHostKeyChecking=no /tmp/ohif-viewer.tar ${USER}@${HOST}:~/ohif-viewer.tar
+        
+        # SSH into EC2, load the image, stop old container, start new one
         ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} '
-          if [ "$(ls -A /var/www/html/ohif-viewer/app)" ]; then
-            echo "Files found in destination. Removing..."
-            sudo rm -rf /var/www/html/ohif-viewer/app/*
-          else
-            echo "Destination is empty. Continuing..."
-          fi
-          sudo mv ~/app_ohif_tmp/* /var/www/html/ohif-viewer/app/ 2>/dev/null || true
-          sudo rm -rf ~/app_ohif_tmp
-        '
-
-    - name: Build and run Docker container on EC2
-      env:
-        PRIVATE_KEY: ${{ secrets.AWS_VM_SSH_KEY }}
-        HOST: ${{ secrets.AWS_VM_HOST }}
-        USER: ${{ secrets.AWS_VM_USERNAME }}
-      run: |
-        ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} '
-          cd /var/www/html/ohif-viewer/app
-          
-          if [ ! -f Dockerfile ]; then
-            echo "Dockerfile not found in expected location!"
-            exit 1
-          fi
-          
-         
-          docker build . -t ohif-viewer-image 
-          
-          if [ $(docker ps -q -f name=ohif-viewer-container) ]; then
-            echo "Stopping existing container..."
-            docker stop ohif-viewer-container
-          fi
-          
-          if [ $(docker ps -a -q -f name=ohif-viewer-container) ]; then
-            echo "Removing existing container and its volumes..."
-            docker rm -v ohif-viewer-container
-          fi
-          
-          docker run -d -p 3000:80/tcp \
-            -v /var/www/html/ohif-viewer/default.js:/usr/share/nginx/html/app-config.js \
-            --name ohif-viewer-container ohif-viewer-image
+          docker load < ~/ohif-viewer.tar
+          docker stop ohif-viewer || true
+          docker rm ohif-viewer || true
+          docker run -d --name ohif-viewer -p 3000:80 ohif-viewer:latest
+          rm ~/ohif-viewer.tar
         '
 
     - name: Cleanup
