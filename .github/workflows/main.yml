@@ -1,4 +1,4 @@
-name: Direct Docker Build and Deploy to EC2
+name: Docker Build and Deploy to EC2 with Conditional Cleanup
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Copy files to EC2
+    - name: Copy files to EC2 with conditional cleanup
       env:
         PRIVATE_KEY: ${{ secrets.AWS_VM_SSH_KEY }}
         HOST: ${{ secrets.AWS_VM_HOST }}
@@ -21,8 +21,14 @@ jobs:
         ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} 'mkdir -p ~/app_ohif_tmp'
         scp -i private_key -o StrictHostKeyChecking=no -r ./* ${USER}@${HOST}:~/app_ohif_tmp
         ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} '
-          sudo rm -rf /var/www/html/ohif-viewer/app/*
-          sudo mv ~/app_ohif_tmp /var/www/html/ohif-viewer/app
+          if [ "$(ls -A /var/www/html/ohif-viewer/app)" ]; then
+            echo "Files found in destination. Removing..."
+            sudo rm -rf /var/www/html/ohif-viewer/app/*
+          else
+            echo "Destination is empty. Continuing..."
+          fi
+          sudo mv ~/app_ohif_tmp/* /var/www/html/ohif-viewer/app/
+          sudo rmdir ~/app_ohif_tmp
         '
 
     - name: Build and run Docker container on EC2
