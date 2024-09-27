@@ -36,14 +36,22 @@ jobs:
       run: |
         ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} '
           cd /var/www/html/ohif-viewer/app
-          sudo docker build -t ohif-viewer-image .
+          docker build -t ohif-viewer-image .
 
-          # Stop and remove any existing container with the same name
-          # sudo docker stop ohif-viewer-container || true
-          # sudo docker rm ohif-viewer-container || true
+          # Check if the container exists and stop it if running
+          if [ $(docker ps -q -f name=ohif-viewer-container) ]; then
+            echo "Stopping existing container..."
+            docker stop ohif-viewer-container
+          fi
+
+          # Check if the container exists and remove it (along with associated volumes)
+          if [ $(docker ps -a -q -f name=ohif-viewer-container) ]; then
+            echo "Removing existing container and its volumes..."
+            docker rm -v ohif-viewer-container
+          fi
 
           # Run the new container, mapping necessary volumes and ports
-          sudo docker run -d -p 3000:80/tcp -v /var/www/html/ohif-viewer/default.js:/usr/share/nginx/html/app-config.js --name ohif-viewer-container ohif-viewer-image
+          docker run -d -p 3000:80/tcp -v /var/www/html/ohif-viewer/default.js:/usr/share/nginx/html/app-config.js --name ohif-viewer-container ohif-viewer-image
         '
 
     - name: Cleanup
