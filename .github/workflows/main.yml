@@ -23,11 +23,10 @@ jobs:
         ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} '
           if [ "$(ls -A /var/www/html/ohif-viewer/app)" ]; then
             echo "Files found in destination. Removing..."
-            sudo rm -rf /var/www/html/ohif-viewer/app
+            sudo rm -rf /var/www/html/ohif-viewer/app/*
           else
             echo "Destination is empty. Continuing..."
           fi
-          sudo mkdir -p /var/www/html/ohif-viewer/app
           sudo mv ~/app_ohif_tmp/* ~/app_ohif_tmp/.* /var/www/html/ohif-viewer/app/ 2>/dev/null || true
           sudo rmdir ~/app_ohif_tmp
         '
@@ -47,7 +46,7 @@ jobs:
           fi
           
          
-          docker build -t ohif-viewer-image .
+          docker build . -t ohif-viewer-image 
           
           if [ $(docker ps -q -f name=ohif-viewer-container) ]; then
             echo "Stopping existing container..."
@@ -61,7 +60,7 @@ jobs:
           
           docker run -d -p 3000:80/tcp \
             -v /var/www/html/ohif-viewer/default.js:/usr/share/nginx/html/app-config.js \
-            --name ohif-viewer-container ohif-viewer-image:$IMAGE_TAG
+            --name ohif-viewer-container ohif-viewer-image
         '
 
     - name: Cleanup
