@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.9.0-beta.82](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.81...v3.9.0-beta.82) (2024-09-05)
+
+
+### Bug Fixes
+
+* Add kheops integration into OHIF v3 again ([#4345](https://github.com/OHIF/Viewers/issues/4345)) ([e1feffa](https://github.com/OHIF/Viewers/commit/e1feffa42553d6c8650a4aceb09f72c637126660))
+
+
+
+
+
+# [3.9.0-beta.81](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.80...v3.9.0-beta.81) (2024-08-27)
+
+
+### Bug Fixes
+
+* 🐛 SeriesInstanceUID fallback + update retrieve metadata filtered to check for lazy ([#4346](https://github.com/OHIF/Viewers/issues/4346)) ([14498d4](https://github.com/OHIF/Viewers/commit/14498d4e9a6a57324b8be9f0b314f2901459dc4a))
+
+
+
+
+
 # [3.9.0-beta.80](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.79...v3.9.0-beta.80) (2024-08-16)
 
 **Note:** Version bump only for package ohif-monorepo-root
