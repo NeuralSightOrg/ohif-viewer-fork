@@ -50,6 +50,8 @@ const defineValues = {
   'process.env.LOCIZE_PROJECTID': JSON.stringify(process.env.LOCIZE_PROJECTID || ''),
   'process.env.LOCIZE_API_KEY': JSON.stringify(process.env.LOCIZE_API_KEY || ''),
   'process.env.REACT_APP_I18N_DEBUG': JSON.stringify(process.env.REACT_APP_I18N_DEBUG || ''),
+  /* custom env variables  */
+  'process.env.REACT_APP_API_BASE' : JSON.stringify(process.env.REACT_APP_API_BASE || '')
 };
 
 // Only redefine updated values.  This avoids warning messages in the logs
