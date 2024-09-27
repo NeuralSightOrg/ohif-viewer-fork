@@ -46,8 +46,8 @@ jobs:
             exit 1
           fi
           
-          IMAGE_TAG=$(date +%s)
-          docker build -t ohif-viewer-image:$IMAGE_TAG .
+         
+          docker build -t ohif-viewer-image .
           
           if [ $(docker ps -q -f name=ohif-viewer-container) ]; then
             echo "Stopping existing container..."
