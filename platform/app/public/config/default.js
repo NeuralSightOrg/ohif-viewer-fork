@@ -58,7 +58,7 @@ window.config = {
   whiteLabeling: {
     createLogoComponentFn: function (React) {
       const currentPath = window.location.pathname;
-      const dashboard_url = 'https://nerualsight.ai';
+      const dashboard_url = 'https://neuralsight.ai';
       const redirectUrl = currentPath === '/' ? dashboard_url : '/';
 
       return React.createElement(
