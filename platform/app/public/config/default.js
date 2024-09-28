@@ -1,7 +1,7 @@
 window.config = {
   routerBasename: '/',
-  // extensions: [],
-  // modes: [],
+  extensions: [],
+  modes: [],
   customizationService: {},
   showStudyList: true,
   maxNumberOfWebWorkers: 3,
