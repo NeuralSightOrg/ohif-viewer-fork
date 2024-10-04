@@ -1,6 +1,6 @@
 // These should be overridden by the implementation
 let user = {
-  userLoggedIn: () => false,
+  userLoggedIn: () => true,
   getUserId: () => null,
   getName: () => null,
   getAccessToken: () => null,

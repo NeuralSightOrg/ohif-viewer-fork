@@ -1,5 +1,5 @@
 export default async config => {
-  const useDynamicConfig = config.dangerouslyUseDynamicConfig;
+  const useDynamicConfig = config?.dangerouslyUseDynamicConfig;
 
   // Check if dangerouslyUseDynamicConfig enabled
   if (useDynamicConfig?.enabled) {

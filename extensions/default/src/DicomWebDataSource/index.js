@@ -85,6 +85,7 @@ function createDicomWebApi(dicomWebConfig, servicesManager) {
         if (authHeaders && authHeaders.Authorization) {
           xhrRequestHeaders.Authorization = authHeaders.Authorization;
         }
+        xhrRequestHeaders['X-Orthanc-label'] = localStorage.getItem('x-orthanc-label') || '';
         return xhrRequestHeaders;
       };
 
