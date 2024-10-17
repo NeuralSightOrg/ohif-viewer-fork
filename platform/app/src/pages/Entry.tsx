@@ -6,8 +6,6 @@ const Entry = () => {
   const location = useLocation();
 
   const url = window.config.apiBaseURL;
-  // const url = 'http://192.168.100.66:8080/api';
-  console.log(url);
 
   const queryParams = new URLSearchParams(location.search);
 
@@ -35,12 +33,14 @@ const Entry = () => {
 
           // Save the new label and token if needed
           localStorage.setItem('x-orthanc-label', label);
+          localStorage.setItem('authToken', token);
 
           // Redirect back to the dashboard
           navigate('/');
-
         } catch (error) {
           console.error('Error during authentication:', error);
+          alert('Authentication Error. Please try again !');
+          window.location.href = window.config?.dashboardURL;
         }
       }
     };

@@ -58,7 +58,7 @@ window.config = {
   whiteLabeling: {
     createLogoComponentFn: function (React) {
       const currentPath = window.location.pathname;
-      const dashboard_url = 'https://neuralsight.ai';
+      const dashboard_url = 'http://localhost:3001';
       const redirectUrl = currentPath === '/' ? dashboard_url : '/';
 
       return React.createElement(
@@ -75,6 +75,7 @@ window.config = {
               event.preventDefault();
               if (currentPath === '/') {
                 localStorage.removeItem('x-orthanc-label');
+                localStorage.removeItem('authToken');
                 window.location.href = redirectUrl;
               } else {
                 window.history.back();
@@ -190,5 +191,7 @@ window.config = {
       keys: ['9'],
     },
   ],
-  apiBaseURL: 'https://api.neuralsight.ai/api',
+  // apiBaseURL: 'https://api.neuralsight.ai/api',
+  apiBaseURL: 'https://fbb8-41-90-68-85.ngrok-free.app/api',
+  dashboardURL: 'http://localhost:3001',
 };

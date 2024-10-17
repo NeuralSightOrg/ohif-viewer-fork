@@ -92,6 +92,14 @@ module.exports = (env, argv) => {
           __dirname,
           '/home/devcoder/projects/ohif/ohif-custom-extensions/ohif-extension-report/node_modules'
         ),
+        path.resolve(
+          __dirname,
+          '/home/devcoder/projects/ohif/ohif-custom-extensions/ohif-extension-share/node_modules'
+        ),
+        path.resolve(
+          __dirname,
+          '/home/devcoder/projects/ohif/ohif-custom-extensions/ohif-extension-share/node_modules'
+        ),
       ],
     },
     plugins: [
