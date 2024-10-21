@@ -7,7 +7,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -19,7 +19,7 @@ jobs:
 
     - name: Install dependencies
       run: yarn install
-      
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
@@ -38,16 +38,16 @@ jobs:
         USER: ${{ secrets.AWS_VM_USERNAME }}
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-        
+
         # Copy the Docker image to EC2
         scp -i private_key -o StrictHostKeyChecking=no /tmp/ohif-viewer.tar ${USER}@${HOST}:~/ohif-viewer.tar
-        
+
         # SSH into EC2, load the image, stop old container, start new one
         ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} '
           docker load < ~/ohif-viewer.tar
           docker stop ohif-viewer || true
           docker rm ohif-viewer || true
-          docker run -d --name ohif-viewer -p 3000:80 ohif-viewer:latest
+          docker run -d --name ohif-viewer -p 5000:80 ohif-viewer:latest
           rm ~/ohif-viewer.tar
         '
 
