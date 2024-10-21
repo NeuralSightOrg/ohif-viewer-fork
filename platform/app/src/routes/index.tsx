@@ -13,6 +13,15 @@ import PrivateRoute from './PrivateRoute';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 
+import Login from '../pages/auth/Login';
+import View from '../pages/View';
+import Entry from '../pages/Entry';
+import { DashboardPage } from '../pages/dashboard/DashboardPage';
+import { Reports } from '../pages/reports/Reports';
+import Logout from '../pages/auth/Logout';
+import UserProfile from '../pages/user/Profile';
+import UserManagement from '../pages/user/UserManagement';
+
 const NotFoundServer = ({
   message = 'Unable to query for studies at this time. Check your data source configuration or network connection',
 }) => {
@@ -51,6 +60,49 @@ const NotFoundStudy = () => {
 NotFoundStudy.propTypes = {
   message: PropTypes.string,
 };
+
+const newRoutes = [
+  {
+    path: '/dashboard',
+    children: DashboardPage,
+    private: true,
+  },
+  {
+    path: '/login',
+    children: Login,
+    private: false,
+  },
+  {
+    path: '/user-management',
+    children: UserManagement,
+    private: true,
+  },
+  {
+    path: '/reports',
+    children: Reports,
+    private: true,
+  },
+  {
+    path: '/view',
+    children: View,
+    private: false,
+  },
+  {
+    path: '/entry',
+    children: Entry,
+    private: true,
+  },
+  {
+    path: '/profile',
+    children: UserProfile,
+    private: true,
+  },
+  {
+    path: '/logout',
+    children: Logout,
+    private: true,
+  },
+];
 
 // TODO: Include "routes" debug route if dev build
 const bakedInRoutes = [
@@ -111,6 +163,7 @@ const createRoutes = ({
   const customRoutes = customizationService.getGlobalCustomization('customRoutes');
   const allRoutes = [
     ...routes,
+    ...newRoutes,
     ...(showStudyList ? [WorkListRoute] : []),
     ...(customRoutes?.routes || []),
     ...bakedInRoutes,
@@ -118,11 +171,11 @@ const createRoutes = ({
   ];
 
   function RouteWithErrorBoundary({ route, ...rest }) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
       <ErrorBoundary
         context={`Route ${route.path}`}
         fallbackRoute="/"
+        isPage={undefined}
       >
         <route.children
           {...rest}
@@ -136,26 +189,22 @@ const createRoutes = ({
     );
   }
 
-  const { userAuthenticationService } = servicesManager.services;
-
-  // All routes are private by default and then we let the user auth service
-  // to check if it is enabled or not
-  // Todo: I think we can remove the second public return below
   return (
     <Routes>
       {allRoutes.map((route, i) => {
+        if (route.path === '/viewer') {
+          route.private = false;
+        }
         return route.private === true ? (
           <Route
             key={i}
             path={route.path}
             element={
-              <PrivateRoute
-                handleUnauthenticated={() => userAuthenticationService.handleUnauthenticated()}
-              >
+              <PrivateRoute>
                 <RouteWithErrorBoundary route={route} />
               </PrivateRoute>
             }
-          ></Route>
+          />
         ) : (
           <Route
             key={i}

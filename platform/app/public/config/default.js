@@ -2,6 +2,25 @@ window.config = {
   routerBasename: '/',
   extensions: [],
   modes: [],
+
+  // This is an array, but we'll only use the first entry for now
+  // oidc: [
+  //   {
+  //     // ~ REQUIRED
+  //     // Authorization Server URL
+  //     authority: 'http://localhost:3002',
+  //     client_id: 'ohif-viewer',
+  //     redirect_uri: '/callback',
+  //     response_type: 'id_token token',
+  //     scope: 'openid profile email',
+  //     // ~ OPTIONAL
+  //     post_logout_redirect_uri: '/logout-redirect.html',
+  //     revoke_uri: 'http://localhost:3002/revoke',
+  //     automaticSilentRenew: true,
+  //     revokeAccessTokenOnSignout: true,
+  //   },
+  // ],
+
   customizationService: {},
   showStudyList: true,
   maxNumberOfWebWorkers: 3,
@@ -52,15 +71,37 @@ window.config = {
     },
   ],
   httpErrorHandler: error => {
-    console.warn(error.status);
-    console.warn('test, navigate to https://ohif.org/');
+    const { status, message } = error;
+    console.warn(`HTTP Error: ${status}`, message || 'No additional information available');
+    switch (status) {
+      case 400:
+        console.warn('Bad Request: The server could not understand the request.');
+        break;
+      case 401:
+        console.warn('Unauthorized: Access is denied due to invalid credentials.');
+        break;
+      case 403:
+        console.warn('Forbidden: You do not have permission to access this resource.');
+
+        break;
+      case 404:
+        console.warn('Not Found: The requested resource could not be found.');
+
+        break;
+      case 500:
+        console.warn('Internal Server Error: Please try again later.');
+
+        break;
+      default:
+        console.warn('An unexpected error occurred.');
+
+        break;
+    }
+    console.warn('Redirecting to the homepage or error page...');
+    // window.location.href = 'https://ohif.org/';
   },
   whiteLabeling: {
     createLogoComponentFn: function (React) {
-      const currentPath = window.location.pathname;
-      const dashboard_url = 'http://localhost:3001';
-      const redirectUrl = currentPath === '/' ? dashboard_url : '/';
-
       return React.createElement(
         'div',
         { className: 'flex items-center' },
@@ -70,17 +111,7 @@ window.config = {
             target: '_self',
             rel: 'noopener noreferrer',
             className: 'text-purple-600 line-through mr-4',
-            href: redirectUrl,
-            onClick: event => {
-              event.preventDefault();
-              if (currentPath === '/') {
-                localStorage.removeItem('x-orthanc-label');
-                localStorage.removeItem('authToken');
-                window.location.href = redirectUrl;
-              } else {
-                window.history.back();
-              }
-            },
+            href: '/',
           },
           React.createElement('img', {
             src: '/assets/logo.gif',
@@ -90,7 +121,7 @@ window.config = {
         React.createElement(
           'a',
           {
-            href: dashboard_url,
+            href: '/dashboard',
             className: 'text-blue-600 hover:underline hover:text-white',
           },
           'Dashboard'
@@ -192,6 +223,6 @@ window.config = {
     },
   ],
   // apiBaseURL: 'https://api.neuralsight.ai/api',
-  apiBaseURL: 'https://fbb8-41-90-68-85.ngrok-free.app/api',
+  apiBaseURL: 'http://192.168.100.66:8080/api',
   dashboardURL: 'http://localhost:3001',
 };

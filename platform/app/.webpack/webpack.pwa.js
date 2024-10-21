@@ -74,33 +74,9 @@ module.exports = (env, argv) => {
         SRC_DIR,
         path.resolve(
           __dirname,
-          '/home/devcoder/projects/ohif/ohif-custom-extensions/ohif-extension-share/node_modules'
+          '/home/devcoder/projects/ohif/ohif-viewer/extensions/ohif-extension-share/node_modules'
         ),
-        path.resolve(
-          __dirname,
-          '/home/devcoder/projects/ohif/ohif-custom-extensions/ohif-extension-share/node_modules'
-        ),
-        path.resolve(
-          __dirname,
-          '/home/devcoder/projects/ohif/ohif-custom-extensions/ohif-extension-share/node_modules'
-        ),
-        path.resolve(
-          __dirname,
-          '/home/devcoder/projects/ohif/ohif-custom-extensions/ohif-extension-report/node_modules'
-        ),
-        path.resolve(
-          __dirname,
-          '/home/devcoder/projects/ohif/ohif-custom-extensions/ohif-extension-report/node_modules'
-        ),
-        path.resolve(
-          __dirname,
-          '/home/devcoder/projects/ohif/ohif-custom-extensions/ohif-extension-share/node_modules'
-        ),
-        path.resolve(
-          __dirname,
-          '/home/devcoder/projects/ohif/ohif-custom-extensions/ohif-extension-share/node_modules'
-        ),
-      ],
+        path.resolve(__dirname, '/home/devcoder/projects/ohif/ohif-viewer/extensions/ohif-extension-report/node_modules'),],
     },
     plugins: [
       new Dotenv(),

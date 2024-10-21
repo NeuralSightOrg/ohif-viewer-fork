@@ -31,7 +31,6 @@ import { AppConfigProvider } from '@state';
 import createRoutes from './routes';
 import appInit from './appInit.js';
 import OpenIdConnectRoutes from './utils/OpenIdConnectRoutes';
-import Entry from './pages/Entry';
 
 let commandsManager: CommandsManager,
   extensionManager: ExtensionManager,
@@ -68,7 +67,6 @@ function App({
     };
 
     run();
-
   }, []);
 
   if (!init) {
@@ -154,15 +152,6 @@ function App({
         routerBasename={routerBasename}
         userAuthenticationService={userAuthenticationService}
       />
-    );
-  } else {
-    authRoutes = (
-      <Routes>
-        <Route
-          path="/entry"
-          Component={Entry}
-        />
-      </Routes>
     );
   }
 
