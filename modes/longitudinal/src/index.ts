@@ -67,6 +67,7 @@ const extensionDependencies = {
   '@ohif/extension-dicom-pdf': '^3.0.1',
   '@ohif/extension-dicom-video': '^3.0.1',
   'ohif-extension-share': '^0.0.1',
+  'ohif-extension-report': '^0.0.1',
 };
 
 function modeFactory({ modeConfiguration }) {
@@ -191,12 +192,13 @@ function modeFactory({ modeConfiguration }) {
           return {
             id: ohif.layout,
             props: {
-              leftPanels: [
-                tracked.thumbnailList,
+              leftPanels: [tracked.thumbnailList],
+              rightPanels: [
+                dicomSeg.panel,
+                tracked.measurements,
                 'ohif-extension-share.panelModule.share',
                 'ohif-extension-report.panelModule.report',
               ],
-              rightPanels: [dicomSeg.panel, tracked.measurements],
               rightPanelClosed: true,
               viewports: [
                 {

@@ -58,7 +58,7 @@ const defaults = {
 };
 
 const Button = ({
-  children = '',
+  children = '' as React.ReactNode,
   size = defaults.size,
   disabled = defaults.disabled,
   type = defaults.type,
