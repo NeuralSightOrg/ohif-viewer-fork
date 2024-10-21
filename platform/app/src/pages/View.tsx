@@ -5,7 +5,7 @@ const View = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const url = window.config.apiBaseURL;
+  const url = process.env.REACT_APP_API_BASE;
 
   const queryParams = new URLSearchParams(location.search);
   const token = queryParams.get('token');
@@ -42,14 +42,14 @@ const View = () => {
 
           // Save the new label and token if needed
           localStorage.setItem('x-orthanc-label', label);
-          localStorage.setItem('authToken', token);
+          localStorage.setItem('authToken', token); // TODO: redesign the flow for guest users 
 
           // Redirect back to the dashboard with the study UID
           navigate(`/viewer?StudyInstanceUIDs=${studyUID}`);
         } catch (error) {
           console.error('Something went wrong!', error);
           alert('Something went wrong. Please try again!');
-          window.location.href = window.config?.dashboardURL;
+          window.location.href = '/';
         }
       }
     };
