@@ -465,43 +465,43 @@ function WorkList({
   };
 
   const menuOptions = [
-    {
-      title: t('Header:About'),
-      icon: 'info',
-      onClick: () =>
-        show({
-          content: AboutModal,
-          title: t('AboutModal:About OHIF Viewer'),
-          contentProps: { versionNumber, commitHash },
-          containerDimensions: 'max-w-4xl max-h-4xl',
-        }),
-    },
-    {
-      title: t('Header:Preferences'),
-      icon: 'settings',
-      onClick: () =>
-        show({
-          title: t('UserPreferencesModal:User preferences'),
-          content: UserPreferences,
-          contentProps: {
-            hotkeyDefaults: hotkeysManager.getValidHotkeyDefinitions(hotkeyDefaults),
-            hotkeyDefinitions,
-            onCancel: hide,
-            currentLanguage: currentLanguage(),
-            availableLanguages,
-            defaultLanguage,
-            onSubmit: state => {
-              if (state.language.value !== currentLanguage().value) {
-                i18n.changeLanguage(state.language.value);
-              }
-              hotkeysManager.setHotkeys(state.hotkeyDefinitions);
-              hide();
-            },
-            onReset: () => hotkeysManager.restoreDefaultBindings(),
-            hotkeysModule: hotkeys,
-          },
-        }),
-    },
+    // {
+    //   title: t('Header:About'),
+    //   icon: 'info',
+    //   onClick: () =>
+    //     show({
+    //       content: AboutModal,
+    //       title: t('AboutModal:About OHIF Viewer'),
+    //       contentProps: { versionNumber, commitHash },
+    //       containerDimensions: 'max-w-4xl max-h-4xl',
+    //     }),
+    // },
+    // {
+    //   title: t('Header:Preferences'),
+    //   icon: 'settings',
+    //   onClick: () =>
+    //     show({
+    //       title: t('UserPreferencesModal:User preferences'),
+    //       content: UserPreferences,
+    //       contentProps: {
+    //         hotkeyDefaults: hotkeysManager.getValidHotkeyDefinitions(hotkeyDefaults),
+    //         hotkeyDefinitions,
+    //         onCancel: hide,
+    //         currentLanguage: currentLanguage(),
+    //         availableLanguages,
+    //         defaultLanguage,
+    //         onSubmit: state => {
+    //           if (state.language.value !== currentLanguage().value) {
+    //             i18n.changeLanguage(state.language.value);
+    //           }
+    //           hotkeysManager.setHotkeys(state.hotkeyDefinitions);
+    //           hide();
+    //         },
+    //         onReset: () => hotkeysManager.restoreDefaultBindings(),
+    //         hotkeysModule: hotkeys,
+    //       },
+    //     }),
+    // },
     {
       icon: 'power-off',
       title: t('Header:Logout'),
