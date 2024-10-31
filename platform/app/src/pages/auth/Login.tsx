@@ -42,8 +42,6 @@ const LoginForm = () => {
 
       const { token, user } = response.data;
 
-      // Use the login function from our auth hook
-      // This will handle storing the token and user data in both context and localStorage
       login({
         token,
         user: {

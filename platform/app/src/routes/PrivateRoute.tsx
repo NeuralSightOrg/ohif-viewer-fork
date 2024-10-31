@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { LoadingIndicatorProgress } from '@ohif/ui';
 
 const PrivateRoute = ({ children }) => {
   const location = useLocation();
@@ -54,10 +55,17 @@ const PrivateRoute = ({ children }) => {
 
   // Show loading state
   if (isVerifying) {
+    // return (
+    //   <div className="flex min-h-screen items-center justify-center">
+    //     <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
+    //   </div>
+    // );
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
-      </div>
+      <LoadingIndicatorProgress
+        className={undefined}
+        textBlock={undefined}
+        progress={undefined}
+      />
     );
   }
 

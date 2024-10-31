@@ -18,6 +18,43 @@ module.exports = {
     '../../node_modules/@ohif/extension-*/src/**/*.{js,jsx,css, ts,tsx}',
   ],
   theme: {
+    theme: {
+      extend: {
+        animation: {
+          'glow-spin': 'glow-spin 2s linear infinite',
+        },
+        keyframes: {
+          'glow-spin': {
+            '0%': {
+              transform: 'rotate(0deg)',
+              strokeDasharray: '20 180',
+            },
+            '50%': {
+              strokeDasharray: '120 180',
+            },
+            '100%': {
+              transform: 'rotate(360deg)',
+              strokeDasharray: '20 180',
+            },
+          },
+        },
+      },
+    },
+    plugins: [
+      // Add plugin for gradient stop colors
+      function({ addUtilities, theme }) {
+        const stopColors = {
+          '.stop-blue-500': {
+            'stop-color': theme('colors.blue.500'),
+          },
+          '.stop-blue-500/0': {
+            'stop-color': theme('colors.blue.500'),
+            'stop-opacity': 0,
+          },
+        };
+        addUtilities(stopColors);
+      },
+    ],
     fontFamily: {
       sans: [
         'Inter',

@@ -1,3 +1,5 @@
+import { useAuth } from '../../contexts/AuthContext';
+
 import React, { useState, useEffect, useMemo } from 'react';
 import classnames from 'classnames';
 import PropTypes, { object } from 'prop-types';
@@ -57,6 +59,7 @@ function WorkList({
   onRefresh,
   servicesManager,
 }: withAppTypes) {
+  const { logout } = useAuth();
   const { hotkeyDefinitions, hotkeyDefaults } = hotkeysManager;
   const { show, hide } = useModal();
   const { t } = useTranslation();
@@ -445,6 +448,22 @@ function WorkList({
   const versionNumber = process.env.VERSION_NUMBER;
   const commitHash = process.env.COMMIT_HASH;
 
+  const handleLogout = async () => {
+    try {
+      if (appConfig.oidc) {
+        // Handle OIDC logout
+        navigate(`/logout?redirect_uri=${encodeURIComponent(window.location.href)}`);
+      } else {
+        // Use auth context logout
+        await logout();
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Optionally show error notification
+    }
+  };
+
   const menuOptions = [
     {
       title: t('Header:About'),
@@ -483,17 +502,12 @@ function WorkList({
           },
         }),
     },
-  ];
-
-  if (appConfig.oidc) {
-    menuOptions.push({
+    {
       icon: 'power-off',
       title: t('Header:Logout'),
-      onClick: () => {
-        navigate(`/logout?redirect_uri=${encodeURIComponent(window.location.href)}`);
-      },
-    });
-  }
+      onClick: handleLogout,
+    },
+  ];
 
   const { customizationService } = servicesManager.services;
   const { component: dicomUploadComponent } =

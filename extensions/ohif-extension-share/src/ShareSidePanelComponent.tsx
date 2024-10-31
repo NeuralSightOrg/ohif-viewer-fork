@@ -1,8 +1,22 @@
 import React, { useState } from 'react';
 import { Input, Select, Button, Icon } from '@ohif/ui';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../../../platform/app/src/contexts/AuthContext';
 
 export default function ShareSidePanelComponent() {
+  const { hasPermission } = useAuth();
+
+  if (!hasPermission('share_study')) {
+    return (
+      <div className="p-4">
+        <div className="rounded bg-gray-700 p-4 text-center">
+          <Icon name="lock" className="mx-auto mb-2 h-6 w-6 text-gray-400" />
+          <p className="text-sm text-gray-300">You don't have permission to Share Studies.</p>
+        </div>
+      </div>
+    );
+  }
+
   const [email, setEmail] = useState('');
   const [shareType, setShareType] = useState(null);
   const [duration, setDuration] = useState(null);
