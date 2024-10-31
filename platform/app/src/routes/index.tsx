@@ -1,6 +1,9 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ErrorBoundary } from '@ohif/ui';
+import { withPermission } from './PrivateRoute';
+import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 
 // Route Components
 import DataSourceWrapper from './DataSourceWrapper';
@@ -10,9 +13,8 @@ import Debug from './Debug';
 import NotFound from './NotFound';
 import buildModeRoutes from './buildModeRoutes';
 import PrivateRoute from './PrivateRoute';
-import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
 
+// Pages
 import Login from '../pages/auth/Login';
 import View from '../pages/View';
 import Entry from '../pages/Entry';
@@ -21,7 +23,9 @@ import { Reports } from '../pages/reports/Reports';
 import Logout from '../pages/auth/Logout';
 import UserProfile from '../pages/user/Profile';
 import UserManagement from '../pages/user/UserManagement';
+import ForgotPassword from '../pages/auth/ForgotPassword';
 
+// Error Components (unchanged)
 const NotFoundServer = ({
   message = 'Unable to query for studies at this time. Check your data source configuration or network connection',
 }) => {
@@ -61,6 +65,11 @@ NotFoundStudy.propTypes = {
   message: PropTypes.string,
 };
 
+// Protected components with required permissions
+const ProtectedUserManagement = withPermission('manage_users')(UserManagement);
+const ProtectedReports = withPermission('read_report')(Reports);
+const ProtectedUserProfile = withPermission('read_profile')(UserProfile);
+
 const newRoutes = [
   {
     path: '/dashboard',
@@ -74,12 +83,12 @@ const newRoutes = [
   },
   {
     path: '/user-management',
-    children: UserManagement,
+    children: ProtectedUserManagement,
     private: true,
   },
   {
     path: '/reports',
-    children: Reports,
+    children: ProtectedReports,
     private: true,
   },
   {
@@ -94,8 +103,13 @@ const newRoutes = [
   },
   {
     path: '/profile',
-    children: UserProfile,
+    children: ProtectedUserProfile,
     private: true,
+  },
+  {
+    path: '/forgot-password',
+    children: ForgotPassword,
+    private: false,
   },
   {
     path: '/logout',
@@ -104,7 +118,6 @@ const newRoutes = [
   },
 ];
 
-// TODO: Include "routes" debug route if dev build
 const bakedInRoutes = [
   {
     path: '/notfoundserver',
@@ -120,7 +133,7 @@ const bakedInRoutes = [
   },
   {
     path: '/local',
-    children: Local.bind(null, { modePath: '' }), // navigate to the worklist
+    children: Local.bind(null, { modePath: '' }),
   },
   {
     path: '/localbasic',
@@ -128,7 +141,6 @@ const bakedInRoutes = [
   },
 ];
 
-// NOT FOUND (404)
 const notFoundRoute = { component: NotFound };
 
 const createRoutes = ({
