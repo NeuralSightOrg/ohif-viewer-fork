@@ -5,9 +5,8 @@ import { useAuth } from '../../../platform/app/src/contexts/AuthContext';
 
 export default function ShareSidePanelComponent() {
   const { hasPermission, authState } = useAuth();
-  console.log('share_study', hasPermission('share_study'));
 
-  if (!hasPermission('share_studys')) {
+  if (!hasPermission('share_study')) {
     return (
       <div className="p-4">
         <div className="rounded bg-gray-700 p-4 text-center">
