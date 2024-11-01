@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
 import DashboardLayout from './DashboardLayout';
@@ -73,6 +73,28 @@ export const LeftNavigation = () => {
         </svg>
       ),
       allowed: true,
+    },
+    {
+      to: '/reports',
+      label: 'Reports',
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="1em"
+          height="1em"
+          viewBox="0 0 32 32"
+        >
+          <g fill="currentColor">
+            <path d="M25 5h-.17v2H25a1 1 0 0 1 1 1v20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h.17V5H7a3 3 0 0 0-3 3v20a3 3 0 0 0 3 3h18a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3" />
+            <path d="M23 3h-3V0h-8v3H9v6h14zm-2 4H11V5h3V2h4v3h3z" />
+            <path
+              d="M10 13h12v2H10zm0 5h12v2H10zm0 5h12v2H10z"
+              className="ouiIcon__fillSecondary"
+            />
+          </g>
+        </svg>
+      ),
+      allowed: hasPermission('manage_users'),
     },
     {
       to: '/user-management',
@@ -222,57 +244,142 @@ const StatsCard = ({ title, value, icon }) => (
   </div>
 );
 
-const ReportsTable = () => (
-  <div className="mt-8 flex flex-col">
-    <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-      <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-        <div className="overflow-hidden border-b border-gray-200 shadow sm:rounded-lg">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-                >
-                  Report Name
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-                >
-                  Date
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-                >
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {['Report 1', 'Report 2', 'Report 3'].map((report, index) => (
-                <tr key={index}>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                    {report}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                    {new Date().toLocaleDateString()}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">
-                      Completed
-                    </span>
-                  </td>
+const ReportsTable = () => {
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const base_url = process.env.REACT_APP_API_BASE;
+  const { authState } = useAuth();
+
+  console.log('Base URL:', base_url); // Log base URL
+  console.log('Auth Token:', authState?.token);
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${base_url}/reports/listall`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authState?.token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setReports(data || []);
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch reports. Please try again later.');
+        console.error('Error fetching reports:', err);
+        setReports([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (authState?.token) {
+      fetchReports();
+    }
+  }, [base_url, authState?.token]);
+
+  if (loading) {
+    return (
+      <div className="mt-8 flex justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mt-8 rounded-lg bg-red-50 p-4">
+        <div className="text-sm text-red-800">{error}</div>
+      </div>
+    );
+  }
+
+  const stripHtmlTags = html => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent || '';
+  };
+
+  const formatDate = dateString => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  };
+
+  return (
+    <div className="mt-8 flex flex-col">
+      <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+          <div className="overflow-hidden border-b border-gray-200 shadow sm:rounded-lg">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                  >
+                    ID
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                  >
+                    Report Content
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                  >
+                    Last Updated
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {reports && reports.length > 0 ? (
+                  reports.map(report => (
+                    <tr key={report.ID}>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                        {report.ID}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {stripHtmlTags(report.Content)}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                        {formatDate(report.UpdatedAt)}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="3"
+                      className="px-6 py-4 text-center text-sm text-gray-500"
+                    >
+                      No reports available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
+
+export default ReportsTable;
 
 const Dashboard = () => (
   <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
