@@ -9,22 +9,21 @@ const ReportsTable = () => {
   const base_url = process.env.REACT_APP_API_BASE;
   const { authState } = useAuth();
 
-  console.log('Base URL:', base_url); // Log base URL
-  console.log('Auth Token:', authState?.token);
-
   useEffect(() => {
     const fetchReports = async () => {
       try {
         setLoading(true);
         const response = await fetch(`${base_url}/reports/listall`, {
-          method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
             Authorization: `Bearer ${authState?.token}`,
           },
         });
 
         if (!response.ok) {
+          const errorData = await response.json();
+          console.error(
+            `Error fetching reports: ${errorData?.message || response.statusText} (Status: ${response.status})`
+          );
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -34,7 +33,6 @@ const ReportsTable = () => {
       } catch (err) {
         setError('Failed to fetch reports. Please try again later.');
         console.error('Error fetching reports:', err);
-        setReports([]);
       } finally {
         setLoading(false);
       }
@@ -44,7 +42,7 @@ const ReportsTable = () => {
       fetchReports();
     }
   }, [base_url, authState?.token]);
-
+  
   if (loading) {
     return (
       <div className="mt-8 flex justify-center">
