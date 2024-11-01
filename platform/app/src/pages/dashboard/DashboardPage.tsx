@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
 import DashboardLayout from './DashboardLayout';
-
+import { useAuth } from '../../contexts/AuthContext';
 
 const NavItem = ({ to, label, icon, isOpen, isActive }) => {
   return (
@@ -26,8 +26,9 @@ const NavItem = ({ to, label, icon, isOpen, isActive }) => {
 export const LeftNavigation = () => {
   const [isOpen, setIsOpen] = useState(true);
   const location = useLocation();
+  const { authState } = useAuth();
 
-  const navItems = [
+  const mainNavItems = [
     {
       to: '/dashboard',
       label: 'Dashboard',
@@ -135,22 +136,23 @@ export const LeftNavigation = () => {
         </svg>
       ),
     },
-    { to: '/logout', label: 'Logout', icon: <LogOut className="h-5 w-5" /> },
   ];
 
   return (
     <div
-      className={`h-screen bg-gray-800 text-white ${
+      className={`flex h-screen flex-col bg-gray-800 text-white ${
         isOpen ? 'w-64' : 'w-20'
       } transition-all duration-300 ease-in-out`}
     >
       <div className="flex items-center justify-between p-4">
-        <img
-          className="h-8 w-auto"
-          src="/assets/logo.gif"
-          alt="OHIF Logo"
-        />
-        {isOpen && <span className="ml-2">Neural Sight</span>}
+        <div className="flex items-center">
+          <img
+            className="h-8 w-auto"
+            src="/assets/logo.gif"
+            alt="OHIF Logo"
+          />
+          {isOpen && <span className="ml-2">NeuralSight</span>}
+        </div>
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="rounded-full p-1 text-white hover:bg-gray-700"
@@ -158,8 +160,27 @@ export const LeftNavigation = () => {
           {isOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
         </button>
       </div>
-      <nav className="mt-8">
-        {navItems.map((item, index) => (
+
+      {/* User info section */}
+      {isOpen && (
+        <div className="border-b border-gray-700 px-4 py-3">
+          <p className="text-sm font-medium text-white">
+            {authState.user?.first_name || 'User'} : (
+            {authState?.user.role
+              ? authState.user.role
+                  .split('_')
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(' ')
+              : 'Test User'}
+            )
+          </p>
+          <p className="text-xs text-gray-400">{authState.user?.email || 'user@example.com'}</p>
+        </div>
+      )}
+
+      {/* Main navigation */}
+      <nav className="mt-4 flex-1">
+        {mainNavItems.map((item, index) => (
           <NavItem
             key={index}
             {...item}
@@ -168,6 +189,17 @@ export const LeftNavigation = () => {
           />
         ))}
       </nav>
+
+      {/* Logout section */}
+      <div className="mt-auto border-t border-gray-600">
+        <NavItem
+          to="/logout"
+          label="Logout"
+          icon={<LogOut className="h-5 w-5" />}
+          isOpen={isOpen}
+          isActive={location.pathname === '/logout'}
+        />
+      </div>
     </div>
   );
 };

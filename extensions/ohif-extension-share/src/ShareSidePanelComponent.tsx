@@ -1,8 +1,23 @@
 import React, { useState } from 'react';
 import { Input, Select, Button, Icon } from '@ohif/ui';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../../../platform/app/src/contexts/AuthContext';
 
 export default function ShareSidePanelComponent() {
+  const { hasPermission, authState } = useAuth();
+  console.log('share_study', hasPermission('share_study'));
+
+  if (!hasPermission('share_studys')) {
+    return (
+      <div className="p-4">
+        <div className="rounded bg-gray-700 p-4 text-center">
+          <Icon name="lock" className="mx-auto mb-2 h-6 w-6 text-gray-400" />
+          <p className="text-sm text-gray-300">You don't have permission to Share Studies.</p>
+        </div>
+      </div>
+    );
+  }
+
   const [email, setEmail] = useState('');
   const [shareType, setShareType] = useState(null);
   const [duration, setDuration] = useState(null);
@@ -27,8 +42,6 @@ export default function ShareSidePanelComponent() {
     { value: '30d', label: '30 Days' },
   ];
 
-  const token = localStorage.getItem('authToken');
-
   const handleSubmit = async e => {
     e.preventDefault();
     setIsLoading(true);
@@ -46,7 +59,7 @@ export default function ShareSidePanelComponent() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authState?.token}`,
         },
         body: JSON.stringify({
           study_id: studyId,

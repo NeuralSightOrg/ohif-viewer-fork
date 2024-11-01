@@ -115,7 +115,7 @@ window.config = {
           },
           React.createElement('img', {
             src: '/assets/logo.gif',
-            className: 'w-8 h-8',
+            className: 'w-8 h-8 bg-white rounded-lg',
           })
         ),
         React.createElement(
@@ -223,6 +223,6 @@ window.config = {
     },
   ],
   // apiBaseURL: 'https://api.neuralsight.ai/api',
-  apiBaseURL: 'http://192.168.100.66:8080/api',
+  // apiBaseURL: 'http://192.168.100.66:8080/api',
   dashboardURL: 'http://localhost:3001',
 };

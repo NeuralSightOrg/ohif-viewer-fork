@@ -5,11 +5,15 @@ const View = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+<<<<<<< HEAD
+=======
+  // const url = window.config.apiBaseURL;
+>>>>>>> dev-2
   const url = process.env.REACT_APP_API_BASE;
 
   const queryParams = new URLSearchParams(location.search);
   const token = queryParams.get('token');
-  console.log(token);
+
 
   useEffect(() => {
     const authenticateAndNavigate = async () => {
@@ -21,7 +25,6 @@ const View = () => {
           };
 
           const response = await fetch(`${url}/share/study/${token}`, requestOptions);
-          console.log(response);
 
           if (!response.ok) {
             throw new Error('Failed to authenticate');
@@ -32,24 +35,22 @@ const View = () => {
           }
 
           const result = await response.text();
-          console.log(response);
 
           const res = JSON.parse(result);
-          console.log(res);
 
           const studyUID = res?.study_id;
           const label = res?.hospital_label;
 
           // Save the new label and token if needed
           localStorage.setItem('x-orthanc-label', label);
-          localStorage.setItem('authToken', token); // TODO: redesign the flow for guest users 
+          localStorage.setItem('authToken', token); // TODO: redesign the flow for guest users
 
           // Redirect back to the dashboard with the study UID
           navigate(`/viewer?StudyInstanceUIDs=${studyUID}`);
         } catch (error) {
           console.error('Something went wrong!', error);
           alert('Something went wrong. Please try again!');
-          window.location.href = '/';
+          window.location.href = '/dashboard';
         }
       }
     };

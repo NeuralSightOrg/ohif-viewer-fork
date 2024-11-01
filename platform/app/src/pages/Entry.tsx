@@ -5,7 +5,9 @@ const Entry = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const url = window.config.apiBaseURL;
+  // const url = window.config.apiBaseURL;
+  const url = process.env.REACT_APP_API_BASE;
+
 
   const queryParams = new URLSearchParams(location.search);
 

@@ -31,6 +31,7 @@ import { AppConfigProvider } from '@state';
 import createRoutes from './routes';
 import appInit from './appInit.js';
 import OpenIdConnectRoutes from './utils/OpenIdConnectRoutes';
+import { AuthProvider } from './contexts/AuthContext';
 
 let commandsManager: CommandsManager,
   extensionManager: ExtensionManager,
@@ -156,12 +157,14 @@ function App({
   }
 
   return (
-    <CombinedProviders>
-      <BrowserRouter basename={routerBasename}>
-        {authRoutes}
-        {appRoutes}
-      </BrowserRouter>
-    </CombinedProviders>
+    <AuthProvider>
+      <CombinedProviders>
+        <BrowserRouter basename={routerBasename}>
+          {authRoutes}
+          {appRoutes}
+        </BrowserRouter>
+      </CombinedProviders>
+    </AuthProvider>
   );
 }
 

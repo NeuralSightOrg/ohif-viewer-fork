@@ -3,6 +3,7 @@ import { Button } from '@ohif/ui';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { FileText, Plus, Send, X, Edit2, Save } from 'lucide-react';
+import { useAuth } from '../../../platform/app/src/contexts/AuthContext';
 
 function ReportModalContent({ onClose }) {
   const [reports, setReports] = useState([]);
@@ -15,8 +16,9 @@ function ReportModalContent({ onClose }) {
   const [hasMore, setHasMore] = useState(true);
   const baseUrl = process.env.REACT_APP_API_BASE;
   const observer = useRef();
-  const token = localStorage.getItem('authToken');
+  const { hasPermission, authState } = useAuth();
 
+  const fetchController = useRef(null);
   const urlParams = new URLSearchParams(window.location.search);
   const studyInstanceUIDs = urlParams.get('StudyInstanceUIDs');
   const STUDY_ID = studyInstanceUIDs ? studyInstanceUIDs.split(',')[0] : '';
@@ -42,36 +44,59 @@ function ReportModalContent({ onClose }) {
   );
 
   useEffect(() => {
-    fetchReports();
-  }, [page]);
-
-  const fetchReports = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `${baseUrl}/reports/listall?studyid=${STUDY_ID}&page=${page}&limit=20`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        setReports(prevReports => [...prevReports, ...data]);
-        setHasMore(data.length === 20);
-      } else {
-        console.error('Unexpected data format:', data);
-        setHasMore(false);
+    const fetchReports = async () => {
+      if (fetchController.current) {
+        fetchController.current.abort();
       }
-    } catch (error) {
-      console.error('Error fetching reports:', error);
-      setHasMore(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      fetchController.current = new AbortController();
+
+      setIsLoading(true);
+      try {
+        const response = await fetch(
+          `${baseUrl}/reports/listall?studyid=${STUDY_ID}&page=${page}&limit=20`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authState?.token}`,
+            },
+            signal: fetchController.current.signal,
+          }
+        );
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          // Remove duplicates based on ID when adding new reports
+          setReports(prevReports => {
+            const newReports = [...prevReports];
+            data.forEach(newReport => {
+              if (!newReports.some(report => report.ID === newReport.ID)) {
+                newReports.push(newReport);
+              }
+            });
+            return newReports;
+          });
+          setHasMore(data.length === 20);
+        } else {
+          console.error('Unexpected data format:', data);
+          setHasMore(false);
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Error fetching reports:', error);
+          setHasMore(false);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchReports();
+
+    return () => {
+      if (fetchController.current) {
+        fetchController.current.abort();
+      }
+    };
+  }, [page, STUDY_ID, authState?.token]);
 
   const submitReport = async () => {
     setIsLoading(true);
@@ -80,7 +105,7 @@ function ReportModalContent({ onClose }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authState?.token}`,
         },
         body: JSON.stringify({
           study_id: STUDY_ID,
@@ -111,7 +136,7 @@ function ReportModalContent({ onClose }) {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authState?.token}`,
         },
         body: JSON.stringify({
           id: selectedReport.ID,
@@ -194,19 +219,21 @@ function ReportModalContent({ onClose }) {
               </div>
             </div>
           ))}
-          {isLoading && <div className="py-2 text-center">Loading...</div>}
+          {isLoading && <div className="py-2 text-center text-black">Loading...</div>}
         </div>
-        <Button
-          onClick={() => {
-            setIsAddingNewReport(true);
-            setSelectedReport(null);
-            setIsEditing(false);
-          }}
-          className="mt-4 flex w-full items-center justify-center rounded-md bg-green-500 px-4 py-2 text-white transition duration-300 ease-in-out hover:bg-green-600"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          New Report
-        </Button>
+        {hasPermission('create_report') && (
+          <Button
+            onClick={() => {
+              setIsAddingNewReport(true);
+              setSelectedReport(null);
+              setIsEditing(false);
+            }}
+            className="mt-4 flex w-full items-center justify-center rounded-md bg-green-500 px-4 py-2 text-white transition duration-300 ease-in-out hover:bg-green-600"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            New Report
+          </Button>
+        )}
       </div>
       <div className="flex w-3/4 flex-col pl-6">
         {isAddingNewReport ? (
@@ -215,39 +242,64 @@ function ReportModalContent({ onClose }) {
               <Send className="mr-2" />
               New Report
             </h3>
-            <div className="mb-4 flex-grow rounded-md bg-white p-4 text-black shadow">
-              <ReactQuill
-                theme="snow"
-                value={newReportText}
-                onChange={setNewReportText}
-                modules={modules}
-                formats={formats}
-                className="h-full text-black"
-              />
+            <div className="relative mb-4 flex-grow rounded-md bg-white shadow">
+              <div className="h-[calc(100vh-350px)]">
+                <ReactQuill
+                  theme="snow"
+                  value={newReportText}
+                  onChange={setNewReportText}
+                  modules={modules}
+                  formats={formats}
+                  className="h-full text-black"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                  }}
+                />
+              </div>
+              <style jsx global>{`
+                .quill {
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+                }
+                .quill .ql-container {
+                  flex: 1;
+                  overflow: auto;
+                }
+                .quill .ql-editor {
+                  height: 100%;
+                  overflow-y: auto;
+                  min-height: 0; /* This is important */
+                }
+              `}</style>
             </div>
           </>
         ) : selectedReport ? (
           <>
             <div className="mb-1 flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-800 ">
-                {selectedReport.PatientName || 'No Patient Name'}sss
+                {selectedReport.PatientName || 'No Patient Name'}
               </h3>
-              <Button
-                onClick={() => setIsEditing(!isEditing)}
-                className="flex items-center rounded-md bg-blue-500 px-2 text-white transition duration-300 ease-in-out hover:bg-blue-600"
-              >
-                {isEditing ? (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Save
-                  </>
-                ) : (
-                  <>
-                    <Edit2 className="mr-2 h-4 w-4" />
-                    Edit
-                  </>
-                )}
-              </Button>
+              {hasPermission('update_report') && (
+                <Button
+                  onClick={() => setIsEditing(!isEditing)}
+                  className="flex items-center rounded-md bg-blue-500 px-2 text-white transition duration-300 ease-in-out hover:bg-blue-600"
+                >
+                  {isEditing ? (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Save
+                    </>
+                  ) : (
+                    <>
+                      <Edit2 className="mr-2 h-4 w-4" />
+                      Edit
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
             <div className="mb-4 text-sm text-black">
               <p className="">
@@ -267,22 +319,45 @@ function ReportModalContent({ onClose }) {
                 })}
               </p>
             </div>
-            <div className="flex-grow overflow-y-auto rounded-md bg-white p-4 text-black text-white shadow">
-              {isEditing ? (
-                <ReactQuill
-                  theme="snow"
-                  value={selectedReport.Content}
-                  onChange={content => setSelectedReport({ ...selectedReport, Content: content })}
-                  modules={modules}
-                  formats={formats}
-                  className="h-full text-black"
-                />
-              ) : (
-                <div
-                  className="ql-editor text-black"
-                  dangerouslySetInnerHTML={{ __html: selectedReport.Content }}
-                />
-              )}
+            <div className="relative flex-grow rounded-md bg-white shadow">
+              <div className="h-[calc(100vh-350px)]">
+                {isEditing ? (
+                  <ReactQuill
+                    theme="snow"
+                    value={selectedReport.Content}
+                    onChange={content => setSelectedReport({ ...selectedReport, Content: content })}
+                    modules={modules}
+                    formats={formats}
+                    className="h-full text-black"
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      height: '100%',
+                    }}
+                  />
+                ) : (
+                  <div
+                    className="h-full overflow-y-auto p-4 text-black"
+                    dangerouslySetInnerHTML={{ __html: selectedReport.Content }}
+                  />
+                )}
+              </div>
+              <style jsx global>{`
+                .quill {
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+                }
+                .quill .ql-container {
+                  flex: 1;
+                  overflow: auto;
+                }
+                .quill .ql-editor {
+                  height: 100%;
+                  overflow-y: auto;
+                  min-height: 0; /* This is important */
+                }
+              `}</style>
             </div>
           </>
         ) : (

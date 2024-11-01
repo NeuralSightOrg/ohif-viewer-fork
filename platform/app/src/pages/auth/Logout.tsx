@@ -1,29 +1,38 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUserAuthentication } from '@ohif/ui';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Logout = () => {
   const navigate = useNavigate();
-  const [, { setUser, setEnabled }] = useUserAuthentication();
+  const { logout } = useAuth();
 
   useEffect(() => {
-    const handleLogout = () => {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      localStorage.removeItem('x-orthanc-label');
+    const handleLogout = async () => {
+      try {
+        // Remove Orthanc-specific storage item
+        localStorage.removeItem('x-orthanc-label');
 
-      setUser(null);
-      setEnabled(false);
+        // Call auth context logout (this will clear auth state and storage)
+        logout();
 
-      navigate('/login');
+        // Navigate to login page
+        navigate('/login', { replace: true });
+      } catch (error) {
+        console.error('Logout error:', error);
+        // Still navigate to login even if there's an error
+        navigate('/login', { replace: true });
+      }
     };
 
     handleLogout();
-  }, [navigate, setUser, setEnabled]);
+  }, [logout, navigate]);
 
   return (
-    <div>
-      <p>Logging out...</p>
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
+        <p className="text-gray-600">Signing out...</p>
+      </div>
     </div>
   );
 };
