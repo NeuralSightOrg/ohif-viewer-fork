@@ -5,10 +5,7 @@ const View = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-<<<<<<< HEAD
-=======
   // const url = window.config.apiBaseURL;
->>>>>>> dev-2
   const url = process.env.REACT_APP_API_BASE;
 
   const queryParams = new URLSearchParams(location.search);
