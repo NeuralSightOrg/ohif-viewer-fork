@@ -1,6 +1,6 @@
 import React from 'react';
 import DashboardLayout from '../dashboard/DashboardLayout';
-import ReportsTable from '../dashboard/DashboardPage';
+import ReportsTable from './ReportsTable';
 
 export const Reports = () => (
   <DashboardLayout>

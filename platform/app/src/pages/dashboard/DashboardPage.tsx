@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
+import { ChevronRight, ChevronLeft, LogOut, ChevronDown } from 'lucide-react';
+import { Users, FileText, Share2, Activity, Calendar, UserCheck } from 'lucide-react';
+
 import DashboardLayout from './DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
+import ReportsTable from '../reports/ReportsTable';
 
 const NavItem = ({ to, label, icon, isOpen, isActive }) => {
   return (
@@ -228,243 +231,245 @@ export const LeftNavigation = () => {
   );
 };
 
-const StatsCard = ({ title, value, icon }) => (
-  <div className="overflow-hidden rounded-lg bg-white shadow">
-    <div className="p-5">
-      <div className="flex items-center">
-        <div className="flex-shrink-0">{icon}</div>
-        <div className="ml-5 w-0 flex-1">
-          <dl>
-            <dt className="truncate text-sm font-medium text-gray-500">{title}</dt>
-            <dd className="text-lg font-medium text-gray-900">{value}</dd>
-          </dl>
+const StatsCard = ({ title, value, subtitle, icon: Icon, trend }) => (
+  <div className="rounded-lg bg-white p-6 shadow transition-all duration-300 hover:shadow-lg">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-primary-dark text-sm font-medium">{title}</p>
+        <div className="mt-1 flex items-baseline">
+          <p className="text-2xl font-semibold text-black">{value}</p>
+          {trend && (
+            <span className={`ml-2 text-sm ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {trend > 0 ? '+' : ''}
+              {trend}%
+            </span>
+          )}
         </div>
+        {subtitle && <p className="text-primary-main mt-1 text-sm">{subtitle}</p>}
+      </div>
+      <div className="bg-primary-light rounded-full p-3">
+        <Icon className="text-primary-main h-6 w-6" />
       </div>
     </div>
   </div>
 );
 
-const ReportsTable = () => {
-  const [reports, setReports] = useState([]);
+const ActivityFeed = ({ activities }) => {
+  const [displayCount, setDisplayCount] = useState(5);
+  const hasMore = activities.length > displayCount;
+
+  const loadMore = () => {
+    setDisplayCount(prev => Math.min(prev + 5, activities.length));
+  };
+
+  return (
+    <div className="rounded-lg bg-white p-6 shadow">
+      <h3 className="mb-4 text-lg font-semibold text-black">Recent Activities</h3>
+
+      {/* Scrollable container */}
+      <div className="flex flex-col">
+        <div className="custom-scrollbar max-h-[600px] overflow-y-auto pr-2">
+          <div className="space-y-4">
+            {activities.slice(0, displayCount).map((activity, index) => (
+              <div
+                key={index}
+                className="bg-primary-light/10 hover:bg-primary-light/20 flex items-start space-x-4 rounded-md p-3 transition-all duration-300"
+              >
+                <div className="bg-primary-light rounded-full p-2">
+                  <Activity className="text-primary-main h-4 w-4" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium text-black">{activity.user_name}</p>
+                  <p className="text-primary-dark text-sm">{activity.action}</p>
+                  <p className="text-primary-light text-xs">
+                    {new Date(activity.timestamp).toLocaleDateString('en-GB', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Show More button */}
+        {hasMore && (
+          <button
+            onClick={loadMore}
+            className="bg-primary-light/20 text-primary-main hover:bg-primary-light/30 mt-4 flex items-center justify-center space-x-2 rounded-md px-4 py-2 text-sm font-medium transition-colors"
+          >
+            <span>Show More</span>
+            <ChevronDown className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Custom scrollbar styles */}
+      <style
+        jsx
+        global
+      >{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 2px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #888;
+          border-radius: 2px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #666;
+        }
+
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #888 #f1f1f1;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default ActivityFeed;
+
+const Dashboard = () => {
+  const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const base_url = process.env.REACT_APP_API_BASE;
   const { authState } = useAuth();
 
-  console.log('Base URL:', base_url); // Log base URL
-  console.log('Auth Token:', authState?.token);
-
   useEffect(() => {
-    const fetchReports = async () => {
+    const fetchDashboardData = async () => {
       try {
-        setLoading(true);
-        const response = await fetch(`${base_url}/reports/listall`, {
-          method: 'GET',
+        const response = await fetch(`${base_url}/stats/dashboard`, {
           headers: {
-            'Content-Type': 'application/json',
             Authorization: `Bearer ${authState?.token}`,
           },
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error('Failed to fetch dashboard data');
         }
 
         const data = await response.json();
-        setReports(data || []);
-        setError(null);
+        setDashboardData(data);
       } catch (err) {
-        setError('Failed to fetch reports. Please try again later.');
-        console.error('Error fetching reports:', err);
-        setReports([]);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
     if (authState?.token) {
-      fetchReports();
+      fetchDashboardData();
     }
   }, [base_url, authState?.token]);
 
   if (loading) {
     return (
-      <div className="mt-8 flex justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
+      <div className="flex h-full items-center justify-center">
+        <div className="border-primary-main h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
       </div>
     );
   }
 
   if (error) {
-    return (
-      <div className="mt-8 rounded-lg bg-red-50 p-4">
-        <div className="text-sm text-red-800">{error}</div>
-      </div>
-    );
+    return <div className="rounded-md bg-red-50 p-4 text-red-700">Error: {error}</div>;
   }
 
-  const stripHtmlTags = html => {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    return doc.body.textContent || '';
-  };
-
-  const formatDate = dateString => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  };
+  const stats = dashboardData?.client_admin_stats;
 
   return (
-    <div className="mt-8 flex flex-col">
-      <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-          <div className="overflow-hidden border-b border-gray-200 shadow sm:rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-                  >
-                    ID
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-                  >
-                    Report Content
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-                  >
-                    Last Updated
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
-                {reports && reports.length > 0 ? (
-                  reports.map(report => (
-                    <tr key={report.ID}>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                        {report.ID}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {stripHtmlTags(report.Content)}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        {formatDate(report.UpdatedAt)}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="3"
-                      className="px-6 py-4 text-center text-sm text-gray-500"
-                    >
-                      No reports available
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+    <div className="bg-primary-light/5 min-h-full p-6">
+      <div className="mb-6 flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        <div>
+          <h1 className="text-2xl font-bold text-black">Dashboard Overview</h1>
+          <p className="text-primary-dark text-sm">
+            Monitor your hospital's key metrics and activities
+          </p>
+        </div>
+        <div className="text-primary-main flex items-center space-x-2 text-sm">
+          <Calendar className="h-4 w-4" />
+          <span>
+            {new Date().toLocaleDateString('en-GB', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </span>
+        </div>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-4">
+        <div className="space-y-6 xl:col-span-3">
+          {/* Stats Grid */}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <StatsCard
+              title="Total Users"
+              value={stats?.total_users || 0}
+              subtitle="Across all roles"
+              icon={Users}
+            />
+            <StatsCard
+              title="Daily Active Users"
+              value={stats?.user_activity?.daily_active_users || 0}
+              subtitle="Last 24 hours"
+              icon={UserCheck}
+              trend={15}
+            />
+            <StatsCard
+              title="Total Reports"
+              value={stats?.total_reports || 0}
+              subtitle="Created reports"
+              icon={FileText}
+            />
+            <StatsCard
+              title="Total Shares"
+              value={stats?.total_shares || 0}
+              subtitle="Shared studies"
+              icon={Share2}
+            />
+            <StatsCard
+              title="Weekly Active Users"
+              value={stats?.user_activity?.weekly_active_users || 0}
+              subtitle="Last 7 days"
+              icon={Activity}
+            />
+            <StatsCard
+              title="Monthly Active Users"
+              value={stats?.user_activity?.monthly_active_users || 0}
+              subtitle="Last 30 days"
+              icon={UserCheck}
+            />
           </div>
+
+          {/* Reports Section */}
+          <div className="rounded-lg bg-white p-6 shadow">
+            <h3 className="mb-4 text-lg font-semibold text-black">Recent Reports</h3>
+            <ReportsTable />
+          </div>
+        </div>
+
+        {/* Activity Feed */}
+        <div className="xl:col-span-1">
+          <ActivityFeed activities={stats?.recent_activities || []} />
         </div>
       </div>
     </div>
   );
 };
-
-export default ReportsTable;
-
-const Dashboard = () => (
-  <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-    <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-    <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-      <StatsCard
-        title="Total Patients"
-        value="1,234"
-        icon={
-          <svg
-            className="h-6 w-6 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-          </svg>
-        }
-      />
-      <StatsCard
-        title="Studies Today"
-        value="42"
-        icon={
-          <svg
-            className="h-6 w-6 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-            />
-          </svg>
-        }
-      />
-      <StatsCard
-        title="Active Users"
-        value="56"
-        icon={
-          <svg
-            className="h-6 w-6 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-            />
-          </svg>
-        }
-      />
-      <StatsCard
-        title="System Uptime"
-        value="99.9%"
-        icon={
-          <svg
-            className="h-6 w-6 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        }
-      />
-    </div>
-    <ReportsTable />
-  </div>
-);
 
 export const DashboardPage = () => (
   <DashboardLayout>
