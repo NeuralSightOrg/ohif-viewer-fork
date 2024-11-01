@@ -151,7 +151,7 @@ export const LeftNavigation = () => {
             src="/assets/logo.gif"
             alt="OHIF Logo"
           />
-          {isOpen && <span className="ml-2">Neural Sight</span>}
+          {isOpen && <span className="ml-2">NeuralSight</span>}
         </div>
         <button
           onClick={() => setIsOpen(!isOpen)}

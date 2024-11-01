@@ -4,9 +4,10 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../../platform/app/src/contexts/AuthContext';
 
 export default function ShareSidePanelComponent() {
-  const { hasPermission } = useAuth();
+  const { hasPermission, authState } = useAuth();
+  console.log('share_study', hasPermission('share_study'));
 
-  if (!hasPermission('share_study')) {
+  if (!hasPermission('share_studys')) {
     return (
       <div className="p-4">
         <div className="rounded bg-gray-700 p-4 text-center">
@@ -41,8 +42,6 @@ export default function ShareSidePanelComponent() {
     { value: '30d', label: '30 Days' },
   ];
 
-  const token = localStorage.getItem('authToken');
-
   const handleSubmit = async e => {
     e.preventDefault();
     setIsLoading(true);
@@ -60,7 +59,7 @@ export default function ShareSidePanelComponent() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authState?.token}`,
         },
         body: JSON.stringify({
           study_id: studyId,

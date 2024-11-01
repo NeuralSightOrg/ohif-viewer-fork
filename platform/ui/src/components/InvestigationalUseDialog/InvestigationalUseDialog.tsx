@@ -9,51 +9,37 @@ export enum showDialogOption {
   ShowOnceAndConfigure = 'configure',
 }
 
+const STORAGE_KEY = 'neuralsight_terms_accepted';
+
 const InvestigationalUseDialog = ({
   dialogConfiguration = {
     option: showDialogOption.AlwaysShowDialog,
   },
 }) => {
-  const { option, days } = dialogConfiguration;
   const [isHidden, setIsHidden] = useState(true);
 
   useEffect(() => {
-    const dialogLocalState = localStorage.getItem('investigationalUseDialog');
-    const dialogSessionState = sessionStorage.getItem('investigationalUseDialog');
+    // Check if terms were previously accepted
+    const hasAcceptedTerms = localStorage.getItem(STORAGE_KEY);
 
-    switch (option) {
-      case showDialogOption.NeverShowDialog:
-        setIsHidden(true);
-        break;
-      case showDialogOption.AlwaysShowDialog:
-        setIsHidden(!!dialogSessionState);
-        break;
-      case showDialogOption.ShowOnceAndConfigure:
-        if (dialogLocalState) {
-          const { expiryDate } = JSON.parse(dialogLocalState);
-          const isExpired = new Date() > new Date(expiryDate);
-          setIsHidden(!isExpired);
-        } else {
-          setIsHidden(false);
-        }
-        break;
-      default:
-        setIsHidden(true);
+    if (hasAcceptedTerms) {
+      setIsHidden(true);
+    } else {
+      setIsHidden(false);
     }
-  }, [option, days]);
+  }, []);
 
   const handleConfirmAndHide = () => {
-    const expiryDate = new Date();
+    // Store acceptance with timestamp
+    const acceptance = {
+      accepted: true,
+      timestamp: new Date().toISOString(),
+      version: '1.0', // Increment this when terms are updated
+    };
 
-    switch (option) {
-      case showDialogOption.ShowOnceAndConfigure:
-        expiryDate.setDate(expiryDate.getDate() + days);
-        localStorage.setItem('investigationalUseDialog', JSON.stringify({ expiryDate }));
-        break;
-      case showDialogOption.AlwaysShowDialog:
-        sessionStorage.setItem('investigationalUseDialog', 'hidden');
-        break;
-    }
+    // Store in localStorage for permanent record
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(acceptance));
+
     setIsHidden(true);
   };
 
@@ -62,36 +48,49 @@ const InvestigationalUseDialog = ({
   }
 
   return (
-    <div className="fixed bottom-2 z-50 flex h-[86px] w-full justify-center">
-      <div className="bg-secondary-dark border-primary-dark flex w-[90%] items-center justify-between rounded-lg border-2 pl-[22px] pr-[22px] pt-[10px] pb-[10px] shadow-lg">
-        <div className="flex items-center gap-4">
-          <Icon
-            name="illustration-investigational-use"
-            className="h-18 w-18"
-          />
-          <div className="flex flex-col">
-            <div className="text-[19px] text-white">
-              OHIF Viewer is{' '}
-              <span className="text-primary-light">for investigational use only</span>
+    <div className="fixed bottom-2 z-50 flex w-full justify-center">
+      <div className="bg-secondary-dark border-primary-dark flex w-[90%] flex-col rounded-lg border-2 p-6 shadow-lg">
+        <div className="flex items-start gap-4">
+          <div className="h-24 w-24">
+            <img
+              src="/assets/logo.gif"
+              alt="Neural Sight Logo"
+              className="h-full w-full rounded-full object-contain"
+            />
+          </div>
+          <div className="flex flex-col space-y-2">
+            <div className="text-xl font-semibold text-white">Terms and Conditions</div>
+            <div className="text-sm text-white/90">
+              By using NeuralSight's services, you agree to our Terms and Conditions, which include:
             </div>
-            <div className="text-[13px] text-white">
+            <ul className="ml-4 list-disc space-y-1 text-sm text-white/80">
+              <li>This software is intended for professional medical use only</li>
+              <li>Users must be licensed healthcare professionals</li>
+              <li>AI analysis is meant to assist, not replace, clinical judgment</li>
+              <li>Patient data privacy and security must be maintained</li>
+              <li>Users are responsible for verifying AI findings</li>
+            </ul>
+            <div className="text-sm text-white/90">
+              For complete terms, please visit{' '}
               <span
-                className="text-primary-active cursor-pointer"
-                onClick={() => window.open('https://ohif.org/', '_blank')}
+                className="text-primary-active cursor-pointer hover:underline"
+                onClick={() => window.open('https://neuralsight.ai/terms', '_blank')}
               >
-                Learn more about OHIF Viewer
+                NeuralSight Terms of Service
               </span>
             </div>
           </div>
         </div>
-        <Button
-          type={ButtonEnums.type.primary}
-          onClick={handleConfirmAndHide}
-          className="bg-primary-main"
-          dataCY="confirm-and-hide-button"
-        >
-          Confirm and Hide
-        </Button>
+        <div className="mt-4 flex justify-end">
+          <Button
+            type={ButtonEnums.type.primary}
+            onClick={handleConfirmAndHide}
+            className="bg-primary-main"
+            dataCY="accept-terms-button"
+          >
+            Accept and Continue
+          </Button>
+        </div>
       </div>
     </div>
   );

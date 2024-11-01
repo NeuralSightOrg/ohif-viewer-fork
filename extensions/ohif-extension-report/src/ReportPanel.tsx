@@ -23,6 +23,7 @@ export function ReportPanel() {
       content: ReportModalContent,
       customClassName: '',
       title: 'Reports',
+      contentDimensions: { height: '80vh' },
       contentProps: {
         onClose: () => show({ content: null }),
       },
